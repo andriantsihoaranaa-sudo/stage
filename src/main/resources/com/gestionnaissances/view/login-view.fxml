@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.gestionnaissances.controller.LoginController"
+           prefHeight="700.0" prefWidth="1000.0"
+           styleClass="login-root">
+
+    <VBox alignment="CENTER" maxWidth="520.0" spacing="24">
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30" />
+        </padding>
+
+        <!-- En-tête officiel républicain -->
+        <VBox alignment="CENTER" spacing="8">
+            <StackPane styleClass="login-logo-circle">
+                <Label text="🏛️" style="-fx-font-size: 34px;" />
+            </StackPane>
+            <Label text="RÉPUBLIQUE • SERVICE DE L'ÉTAT CIVIL" styleClass="login-republique" />
+            <Label text="Gestion des Naissances" styleClass="login-title" />
+            <Label text="Portail d'authentification des agents et officiers communaux" styleClass="login-subtitle" />
+        </VBox>
+
+        <!-- Carte centrale du formulaire de connexion -->
+        <VBox spacing="18" styleClass="login-card">
+            <padding>
+                <Insets top="28" right="32" bottom="28" left="32" />
+            </padding>
+
+            <VBox spacing="4">
+                <Label text="Connexion sécurisée" styleClass="login-card-title" />
+                <Label text="Veuillez renseigner vos identifiants pour accéder au registre" styleClass="login-card-subtitle" />
+            </VBox>
+
+            <!-- Message d'erreur dynamique -->
+            <Label fx:id="lblMessageErreur" wrapText="true" maxWidth="Infinity" styleClass="login-error-badge" visible="false" managed="false" />
+
+            <!-- Champ Nom d'utilisateur -->
+            <VBox spacing="6">
+                <Label text="Nom d'utilisateur :" styleClass="form-field-label" />
+                <TextField fx:id="txtNomUtilisateur" promptText="Ex : admin, responsable, agent"
+                           onKeyPressed="#onToucheEntree" styleClass="login-input" />
+            </VBox>
+
+            <!-- Champ Mot de passe -->
+            <VBox spacing="6">
+                <Label text="Mot de passe :" styleClass="form-field-label" />
+                <PasswordField fx:id="txtMotDePasse" promptText="••••••••"
+                               onKeyPressed="#onToucheEntree" styleClass="login-input" />
+            </VBox>
+
+            <!-- Bouton de connexion -->
+            <Button fx:id="btnConnexion" text="Se connecter au registre ➜" maxWidth="Infinity"
+                    onAction="#onConnexion" styleClass="btn-login-submit" />
+
+            <Separator />
+
+            <!-- Note d'assistance administrative -->
+            <VBox spacing="4" styleClass="login-credentials-helper">
+                <Label text="Rôles habilités pour l'accès aux registres :" styleClass="login-helper-title" />
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="👑 Administrateur" styleClass="role-chip, role-chip-admin" />
+                    <Label text="🏛️ Responsable Communal" styleClass="role-chip, role-chip-responsable" />
+                    <Label text="✍️ Agent" styleClass="role-chip, role-chip-agent" />
+                </HBox>
+                <Label text="Compte initial de test : admin / Admin@123 (à modifier après connexion)" styleClass="login-helper-note" />
+            </VBox>
+        </VBox>
+
+        <!-- Pied de page de sécurité -->
+        <HBox alignment="CENTER" spacing="8">
+            <Label text="●" style="-fx-text-fill: #10b981; -fx-font-size: 10px;" />
+            <Label text="Protection cryptographique PBKDF2-HMAC-SHA256 • Base SQLite locale sécurisée" styleClass="login-footer-text" />
+        </HBox>
+    </VBox>
+
+</StackPane>

@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.gestionnaissances.controller.MainController"
+            prefHeight="800.0" prefWidth="1280.0"
+            styleClass="main-container">
+
+    <!-- ===================================================================== -->
+    <!-- BARRE DE MENUS & EN-TÊTE SUPÉRIEUR                                    -->
+    <!-- ===================================================================== -->
+    <top>
+        <VBox spacing="0">
+            <!-- MenuBar standard -->
+            <MenuBar styleClass="app-menubar">
+                <Menu text="Fichier">
+                    <MenuItem text="Nouvelle déclaration" onAction="#afficherVueFormulaire" />
+                    <MenuItem text="Actualiser les données" onAction="#actualiserDonnees" />
+                    <SeparatorMenuItem />
+                    <MenuItem text="Fermer" onAction="#quitterApplication" />
+                </Menu>
+                <Menu text="Navigation">
+                    <MenuItem text="Tableau de bord" onAction="#afficherVueDashboard" />
+                    <MenuItem text="Enregistrer une naissance" onAction="#afficherVueFormulaire" />
+                    <MenuItem text="Liste des naissances" onAction="#afficherVueListe" />
+                    <MenuItem text="Recherche multicritères" onAction="#afficherVueRecherche" />
+                </Menu>
+                <Menu text="Base de données">
+                    <MenuItem text="Vérifier la connexion SQLite" onAction="#verifierStatutBase" />
+                    <MenuItem text="Statistiques SQLite" onAction="#afficherVueDashboard" />
+                </Menu>
+                <Menu text="Session">
+                    <MenuItem text="Changer de mot de passe" onAction="#ouvrirDialogueChangementMotDePasse" />
+                    <SeparatorMenuItem />
+                    <MenuItem text="Se déconnecter" onAction="#seDeconnecter" />
+                </Menu>
+                <Menu text="Aide">
+                    <MenuItem text="À propos de l'application" onAction="#afficherAPropos" />
+                </Menu>
+            </MenuBar>
+
+            <!-- Bannière administrative officielle -->
+            <HBox alignment="CENTER_LEFT" spacing="16" styleClass="header-banner">
+                <padding>
+                    <Insets top="10" right="20" bottom="10" left="20" />
+                </padding>
+                
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label text="RÉPUBLIQUE • SERVICE DE L'ÉTAT CIVIL ET DE LA POPULATION" styleClass="header-top-label" />
+                    <Label fx:id="lblHeaderTitre" text="Gestion des Naissances — Registre d'État Civil" styleClass="header-title" />
+                    <Label text="Conservation pérenne hors-ligne • Base SQLite locale sécurisée (naissances.db)" styleClass="header-subtitle" />
+                </VBox>
+
+                <HBox alignment="CENTER_RIGHT" spacing="10">
+                    <Label fx:id="lblHeaderUtilisateur" text="Utilisateur" styleClass="header-badge-user" />
+                    <Button text="＋ Nouvelle Déclaration" onAction="#afficherVueFormulaire" styleClass="btn-primary" />
+                    <Button text="⟳ Actualiser" onAction="#actualiserDonnees" styleClass="btn-secondary" />
+                    <Button text="🚪 Déconnexion" onAction="#seDeconnecter" styleClass="btn-secondary" />
+                    <Label text="● 100% Hors-Ligne" styleClass="header-badge-offline" />
+                </HBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- ===================================================================== -->
+    <!-- MENU LATÉRAL (SIDEBAR NAVIGATION)                                     -->
+    <!-- ===================================================================== -->
+    <left>
+        <VBox spacing="0" styleClass="sidebar-pane">
+            <!-- Logo communal -->
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="sidebar-header">
+                <StackPane styleClass="sidebar-logo-circle">
+                    <Label text="🏛️" styleClass="sidebar-logo-text" />
+                </StackPane>
+                <VBox spacing="1">
+                    <Label text="ÉTAT CIVIL" styleClass="sidebar-app-name" />
+                    <Label text="Administration Locale" styleClass="sidebar-app-subtitle" />
+                </VBox>
+            </HBox>
+
+            <!-- Navigation Links -->
+            <VBox spacing="4" VBox.hgrow="ALWAYS">
+                <padding><Insets top="12" right="10" bottom="12" left="10" /></padding>
+
+                <Label text="MODULES PRINCIPAUX" styleClass="sidebar-nav-title" />
+
+                <Button fx:id="btnNavDashboard" maxWidth="Infinity" text="📊  Tableau de bord" onAction="#afficherVueDashboard" styleClass="sidebar-btn, sidebar-btn-active" />
+                <Button fx:id="btnNavNouveau" maxWidth="Infinity" text="📝  Enregistrer une naissance" onAction="#afficherVueFormulaire" styleClass="sidebar-btn" />
+                <Button fx:id="btnNavListe" maxWidth="Infinity" text="📖  Liste des naissances" onAction="#afficherVueListe" styleClass="sidebar-btn" />
+                <Button fx:id="btnNavRecherche" maxWidth="Infinity" text="🔍  Recherche multicritères" onAction="#afficherVueRecherche" styleClass="sidebar-btn" />
+                <Button fx:id="btnNavFiche" maxWidth="Infinity" text="📄  Fiche complète enfant" onAction="#afficherVueFiche" styleClass="sidebar-btn" />
+
+                <!-- Module Administration (Réservé au rôle ADMINISTRATEUR) -->
+                <Separator style="-fx-padding: 6 0 2 0;" />
+                <Label text="ADMINISTRATION" styleClass="sidebar-nav-title" />
+                <Button fx:id="btnNavUtilisateurs" maxWidth="Infinity" text="👥  Gestion des utilisateurs" onAction="#afficherVueUtilisateurs" styleClass="sidebar-btn" />
+            </VBox>
+
+            <!-- Profil utilisateur connecté & Actions rapides -->
+            <VBox spacing="6" styleClass="sidebar-user-card">
+                <padding><Insets top="8" right="10" bottom="8" left="10" /></padding>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="👤" style="-fx-font-size: 18px;" />
+                    <VBox spacing="1" HBox.hgrow="ALWAYS">
+                        <Label fx:id="lblSidebarNomUtilisateur" text="Utilisateur" styleClass="sidebar-user-name" />
+                        <Label fx:id="lblSidebarRoleBadge" text="AGENT" styleClass="role-chip, role-chip-agent" />
+                    </VBox>
+                </HBox>
+                <HBox spacing="4">
+                    <Button fx:id="btnSidebarChangerMdp" text="🔑 Mot de passe" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                            onAction="#ouvrirDialogueChangementMotDePasse" styleClass="btn-sidebar-subaction" />
+                    <Button fx:id="btnSidebarDeconnexion" text="🚪 Quitter" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                            onAction="#seDeconnecter" styleClass="btn-sidebar-subaction, btn-sidebar-logout" />
+                </HBox>
+            </VBox>
+
+            <!-- Pied du menu latéral -->
+            <VBox spacing="3" styleClass="sidebar-footer">
+                <HBox alignment="CENTER_LEFT" spacing="6">
+                    <Label text="●" style="-fx-text-fill: #10b981; -fx-font-size: 9px;" />
+                    <Label text="SQLite naissances.db" styleClass="sidebar-footer-text" />
+                </HBox>
+                <Label text="7 tables relationnelles actives" styleClass="sidebar-footer-val" />
+                <Label text="Version 1.4 • Desktop hors-ligne" styleClass="sidebar-footer-text" />
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- ===================================================================== -->
+    <!-- ZONE CENTRALE DYNAMIQUE (STACKPANE DES 5 VUES)                        -->
+    <!-- ===================================================================== -->
+    <center>
+        <StackPane fx:id="mainContentStack" styleClass="content-area">
+
+            <!-- ============================================================= -->
+            <!-- 1. VUE : TABLEAU DE BORD (DASHBOARD)                          -->
+            <!-- ============================================================= -->
+            <VBox fx:id="viewDashboard" spacing="16">
+                <padding><Insets top="16" right="20" bottom="16" left="20" /></padding>
+
+                <!-- Titre de la vue -->
+                <VBox spacing="2">
+                    <Label text="Tableau de Bord de l'État Civil" styleClass="view-title" />
+                    <Label text="Vue d'ensemble statistique des naissances enregistrées dans la commune" styleClass="view-subtitle" />
+                </VBox>
+
+                <!-- 4 Cartes KPI -->
+                <GridPane hgap="14" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="25" />
+                        <ColumnConstraints percentWidth="25" />
+                        <ColumnConstraints percentWidth="25" />
+                        <ColumnConstraints percentWidth="25" />
+                    </columnConstraints>
+
+                    <!-- KPI 1 : Total Naissances -->
+                    <VBox spacing="4" GridPane.columnIndex="0" styleClass="kpi-card, kpi-card-blue">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="📜" style="-fx-font-size: 16px;" />
+                            <Label text="TOTAL NAISSANCES" styleClass="kpi-label" />
+                        </HBox>
+                        <Label fx:id="lblKpiTotal" text="0" styleClass="kpi-value" />
+                        <Label text="Actes inscrits au registre" styleClass="kpi-sub" />
+                    </VBox>
+
+                    <!-- KPI 2 : Garçons -->
+                    <VBox spacing="4" GridPane.columnIndex="1" styleClass="kpi-card, kpi-card-blue">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="👦" style="-fx-font-size: 16px;" />
+                            <Label text="GARÇONS (M)" styleClass="kpi-label" />
+                        </HBox>
+                        <Label fx:id="lblKpiGarcons" text="0" styleClass="kpi-value" />
+                        <Label text="Nouveau-nés masculins" styleClass="kpi-sub" />
+                    </VBox>
+
+                    <!-- KPI 3 : Filles -->
+                    <VBox spacing="4" GridPane.columnIndex="2" styleClass="kpi-card, kpi-card-pink">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="👧" style="-fx-font-size: 16px;" />
+                            <Label text="FILLES (F)" styleClass="kpi-label" />
+                        </HBox>
+                        <Label fx:id="lblKpiFilles" text="0" styleClass="kpi-value" />
+                        <Label text="Nouveau-nés féminins" styleClass="kpi-sub" />
+                    </VBox>
+
+                    <!-- KPI 4 : Année en cours -->
+                    <VBox spacing="4" GridPane.columnIndex="3" styleClass="kpi-card, kpi-card-green">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label text="📅" style="-fx-font-size: 16px;" />
+                            <Label fx:id="lblKpiAnneeTitre" text="ANNÉE EN COURS" styleClass="kpi-label" />
+                        </HBox>
+                        <Label fx:id="lblKpiAnnee" text="0" styleClass="kpi-value" />
+                        <Label text="Déclarations enregistrées" styleClass="kpi-sub" />
+                    </VBox>
+                </GridPane>
+
+                <!-- Section Graphique & Actions Rapides -->
+                <HBox spacing="14" VBox.hgrow="ALWAYS">
+                    <!-- Graphique par Année -->
+                    <VBox spacing="8" HBox.hgrow="ALWAYS" styleClass="form-card">
+                        <Label text="Évolution des Enregistrements par Année" styleClass="form-card-title" />
+                        <BarChart fx:id="chartNaissancesParAnnee" legendVisible="false" VBox.hgrow="ALWAYS">
+                            <xAxis>
+                                <CategoryAxis fx:id="chartAxisX" label="Année" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis fx:id="chartAxisY" label="Nombre d'actes" />
+                            </yAxis>
+                        </BarChart>
+                    </VBox>
+
+                    <!-- Raccourcis d'actions rapides -->
+                    <VBox spacing="10" prefWidth="280" styleClass="form-card">
+                        <Label text="Actions Rapides" styleClass="form-card-title" />
+                        <Button maxWidth="Infinity" text="📝  Nouvelle Déclaration" onAction="#afficherVueFormulaire" styleClass="btn-primary" />
+                        <Button maxWidth="Infinity" text="🔍  Recherche par Identifiant" onAction="#afficherVueRecherche" styleClass="btn-secondary" />
+                        <Button maxWidth="Infinity" text="📖  Ouvrir le Registre Général" onAction="#afficherVueListe" styleClass="btn-secondary" />
+                        <Separator />
+                        <VBox spacing="6" style="-fx-background-color: #f8fafc; -fx-padding: 10; -fx-border-radius: 4; -fx-border-color: #e2e8f0;">
+                            <Label text="Norme d'identifiant communal :" styleClass="field-label" />
+                            <Label text="CIV-COMM-AAAA-XXXXX" style="-fx-font-family: Consolas; -fx-font-weight: bold; -fx-text-fill: #1e3a8a; -fx-font-size: 11px;" />
+                            <Label text="Calcul automatique de l'âge des parents et intégrité relationnelle SQLite assurée." style="-fx-font-size: 10px; -fx-text-fill: #64748b;" wrapText="true" />
+                        </VBox>
+                    </VBox>
+                </HBox>
+
+                <!-- Tableau récapitulatif des derniers dossiers -->
+                <VBox spacing="6" prefHeight="220" styleClass="form-card">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="Derniers Dossiers Enregistrés" styleClass="form-card-title" HBox.hgrow="ALWAYS" />
+                        <Button text="Voir tous les dossiers →" onAction="#afficherVueListe" styleClass="btn-secondary" style="-fx-font-size: 11px; -fx-padding: 4 8 4 8;" />
+                    </HBox>
+                    <TableView fx:id="tableDerniersDossiers" VBox.hgrow="ALWAYS" styleClass="custom-table">
+                        <columns>
+                            <TableColumn fx:id="colDashIdentifiant" text="Identifiant unique communal" prefWidth="180" />
+                            <TableColumn fx:id="colDashNumeroRegistre" text="N° Registre" prefWidth="130" />
+                            <TableColumn fx:id="colDashNomPrenoms" text="Nom et Prénoms de l'Enfant" prefWidth="240" />
+                            <TableColumn fx:id="colDashSexe" text="Sexe" prefWidth="60" />
+                            <TableColumn fx:id="colDashDateNaiss" text="Date Naissance" prefWidth="110" />
+                            <TableColumn fx:id="colDashLieu" text="Lieu de Naissance" prefWidth="180" />
+                            <TableColumn fx:id="colDashMere" text="Mère" prefWidth="160" />
+                        </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </VBox>
+
+            <!-- ============================================================= -->
+            <!-- 2. VUE : ENREGISTRER UNE NAISSANCE (FORMULAIRE COMPLET)       -->
+            <!-- ============================================================= -->
+            <VBox fx:id="viewFormulaire" spacing="0" visible="false">
+                <!-- En-tête formulaire -->
+                <HBox alignment="CENTER_LEFT" spacing="16" styleClass="view-header">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label text="Enregistrement d'un Dossier de Naissance" styleClass="view-title" />
+                        <Label text="Saisie officielle et complète du registre des naissances (7 tables relationnelles SQLite)" styleClass="view-subtitle" />
+                    </VBox>
+                    <HBox alignment="CENTER_RIGHT" spacing="10">
+                        <Button text="Effacer / Réinitialiser" onAction="#reinitialiserFormulaireComplet" styleClass="btn-secondary" />
+                        <Button text="💾 Enregistrer dans SQLite" onAction="#enregistrerDossierComplet" styleClass="btn-primary" />
+                    </HBox>
+                </HBox>
+
+                <!-- ScrollPane contenant toutes les sections -->
+                <ScrollPane fitToWidth="true" VBox.hgrow="ALWAYS" styleClass="form-scroll">
+                    <VBox spacing="14">
+                        <padding><Insets top="16" right="24" bottom="24" left="24" /></padding>
+
+                        <!-- Section 1 : Références Administratives de l'Acte -->
+                        <VBox spacing="8" styleClass="form-card">
+                            <Label text="1. Références Administratives de l'Acte Communal" styleClass="form-card-title" />
+                            <GridPane hgap="12" vgap="10">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="30" />
+                                    <ColumnConstraints percentWidth="25" />
+                                    <ColumnConstraints percentWidth="15" />
+                                    <ColumnConstraints percentWidth="15" />
+                                    <ColumnConstraints percentWidth="15" />
+                                </columnConstraints>
+
+                                <VBox spacing="4" GridPane.columnIndex="0">
+                                    <Label text="Identifiant unique communal *" styleClass="field-label-gold" />
+                                    <HBox spacing="6">
+                                        <TextField fx:id="txtFormIdentifiantUnique" promptText="CIV-COMM-2025-00001" styleClass="text-input-readonly" HBox.hgrow="ALWAYS" />
+                                        <Button text="⚡" onAction="#genererNouvelIdentifiant" title="Régénérer" styleClass="btn-secondary" style="-fx-padding: 6 10 6 10;" />
+                                    </HBox>
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="1">
+                                    <Label text="Numéro de Registre *" styleClass="field-label-required" />
+                                    <TextField fx:id="txtFormNumeroRegistre" promptText="REG-2025-0001" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="2">
+                                    <Label text="Année Registre *" styleClass="field-label-required" />
+                                    <TextField fx:id="txtFormAnneeRegistre" promptText="2025" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="3">
+                                    <Label text="Folio" styleClass="field-label" />
+                                    <TextField fx:id="txtFormFolio" promptText="F-01" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="4">
+                                    <Label text="Tome" styleClass="field-label" />
+                                    <TextField fx:id="txtFormTome" promptText="T-01" styleClass="text-input" />
+                                </VBox>
+                            </GridPane>
+
+                            <GridPane hgap="12" vgap="8">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="50" />
+                                    <ColumnConstraints percentWidth="50" />
+                                </columnConstraints>
+
+                                <VBox spacing="4" GridPane.columnIndex="0">
+                                    <Label text="Date de déclaration *" styleClass="field-label-required" />
+                                    <DatePicker fx:id="dpFormDateDeclaration" maxWidth="Infinity" styleClass="date-picker-custom" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="1">
+                                    <Label text="Heure de déclaration" styleClass="field-label" />
+                                    <TextField fx:id="txtFormHeureDeclaration" promptText="10:30" styleClass="text-input" />
+                                </VBox>
+                            </GridPane>
+                        </VBox>
+
+                        <!-- Section 2 : Identité du Nouveau-né -->
+                        <VBox spacing="8" styleClass="form-card">
+                            <Label text="2. Identité de l'Enfant (Nouveau-né)" styleClass="form-card-title" />
+                            <GridPane hgap="12" vgap="10">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="50" />
+                                    <ColumnConstraints percentWidth="50" />
+                                </columnConstraints>
+
+                                <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                    <Label text="Nom de famille de l'enfant *" styleClass="field-label-required" />
+                                    <TextField fx:id="txtFormNomEnfant" promptText="ex: KOUASSI" styleClass="text-input" style="-fx-font-weight: bold;" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                    <Label text="Prénoms de l'enfant *" styleClass="field-label-required" />
+                                    <TextField fx:id="txtFormPrenomsEnfant" promptText="ex: Emmanuel Koffi" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                    <Label text="Sexe *" styleClass="field-label-required" />
+                                    <ComboBox fx:id="cbFormSexe" maxWidth="Infinity" styleClass="combo-box-custom" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    <Label text="Statut légal de l'enfant" styleClass="field-label" />
+                                    <ComboBox fx:id="cbFormStatutEnfant" maxWidth="Infinity" styleClass="combo-box-custom" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                    <Label text="Date de naissance *" styleClass="field-label-required" />
+                                    <DatePicker fx:id="dpFormDateNaissance" maxWidth="Infinity" styleClass="date-picker-custom" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                    <Label text="Heure de naissance" styleClass="field-label" />
+                                    <TextField fx:id="txtFormHeureNaissance" promptText="08:45" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2">
+                                    <Label text="Lieu de naissance (Maternité, Hôpital, Commune) *" styleClass="field-label-required" />
+                                    <TextField fx:id="txtFormLieuNaissance" promptText="ex: Centre Hospitalier Régional, Maternité Municipale" styleClass="text-input" />
+                                </VBox>
+                            </GridPane>
+                        </VBox>
+
+                        <!-- Section 3 : Filiation des Parents -->
+                        <VBox spacing="8" styleClass="form-card">
+                            <Label text="3. Filiation des Parents (Père et Mère)" styleClass="form-card-title" />
+                            
+                            <!-- Père -->
+                            <VBox spacing="6" style="-fx-background-color: #f8fafc; -fx-padding: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 6;">
+                                <Label text="— Informations du Père" styleClass="subsection-title" />
+                                <GridPane hgap="10" vgap="8">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="30" />
+                                        <ColumnConstraints percentWidth="30" />
+                                        <ColumnConstraints percentWidth="20" />
+                                        <ColumnConstraints percentWidth="20" />
+                                    </columnConstraints>
+                                    <VBox spacing="4" GridPane.columnIndex="0">
+                                        <Label text="Nom du père" styleClass="field-label" />
+                                        <TextField fx:id="txtFormNomPere" promptText="Nom" styleClass="text-input" />
+                                    </VBox>
+                                    <VBox spacing="4" GridPane.columnIndex="1">
+                                        <Label text="Prénoms du père" styleClass="field-label" />
+                                        <TextField fx:id="txtFormPrenomPere" promptText="Prénoms" styleClass="text-input" />
+                                    </VBox>
+                                    <VBox spacing="4" GridPane.columnIndex="2">
+                                        <Label text="Date de naissance père" styleClass="field-label" />
+                                        <DatePicker fx:id="dpFormDateNaissPere" maxWidth="Infinity" styleClass="date-picker-custom" />
+                                    </VBox>
+                                    <VBox spacing="4" GridPane.columnIndex="3">
+                                        <Label text="Âge calculé" styleClass="field-label" />
+                                        <TextField fx:id="txtFormAgePere" promptText="Âge (ans)" styleClass="text-input-readonly" />
+                                    </VBox>
+                                </GridPane>
+                                <GridPane hgap="10" vgap="8">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50" />
+                                        <ColumnConstraints percentWidth="50" />
+                                    </columnConstraints>
+                                    <VBox spacing="4" GridPane.columnIndex="0">
+                                        <Label text="Profession du père" styleClass="field-label" />
+                                        <TextField fx:id="txtFormProfessionPere" promptText="Profession" styleClass="text-input" />
+                                    </VBox>
+                                    <VBox spacing="4" GridPane.columnIndex="1">
+                                        <Label text="Domicile / Résidence du père" styleClass="field-label" />
+                                        <TextField fx:id="txtFormDomicilePere" promptText="Ville ou quartier de résidence" styleClass="text-input" />
+                                    </VBox>
+                                </GridPane>
+                            </VBox>
+
+                            <!-- Mère -->
+                            <VBox spacing="6" style="-fx-background-color: #f8fafc; -fx-padding: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 6;">
+                                <Label text="— Informations de la Mère" styleClass="subsection-title" />
+                                <GridPane hgap="10" vgap="8">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="30" />
+                                        <ColumnConstraints percentWidth="30" />
+                                        <ColumnConstraints percentWidth="20" />
+                                        <ColumnConstraints percentWidth="20" />
+                                    </columnConstraints>
+                                    <VBox spacing="4" GridPane.columnIndex="0">
+                                        <Label text="Nom de famille de la mère *" styleClass="field-label-required" />
+                                        <TextField fx:id="txtFormNomMere" promptText="Nom de jeune fille" styleClass="text-input" />
+                                    </VBox>
+                                    <VBox spacing="4" GridPane.columnIndex="1">
+                                        <Label text="Prénoms de la mère *" styleClass="field-label-required" />
+                                        <TextField fx:id="txtFormPrenomMere" promptText="Prénoms" styleClass="text-input" />
+                                    </VBox>
+                                    <VBox spacing="4" GridPane.columnIndex="2">
+                                        <Label text="Date de naissance mère" styleClass="field-label" />
+                                        <DatePicker fx:id="dpFormDateNaissMere" maxWidth="Infinity" styleClass="date-picker-custom" />
+                                    </VBox>
+                                    <VBox spacing="4" GridPane.columnIndex="3">
+                                        <Label text="Âge calculé" styleClass="field-label" />
+                                        <TextField fx:id="txtFormAgeMere" promptText="Âge (ans)" styleClass="text-input-readonly" />
+                                    </VBox>
+                                </GridPane>
+                                <GridPane hgap="10" vgap="8">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50" />
+                                        <ColumnConstraints percentWidth="50" />
+                                    </columnConstraints>
+                                    <VBox spacing="4" GridPane.columnIndex="0">
+                                        <Label text="Profession de la mère" styleClass="field-label" />
+                                        <TextField fx:id="txtFormProfessionMere" promptText="Profession" styleClass="text-input" />
+                                    </VBox>
+                                    <VBox spacing="4" GridPane.columnIndex="1">
+                                        <Label text="Domicile / Résidence de la mère" styleClass="field-label" />
+                                        <TextField fx:id="txtFormDomicileMere" promptText="Ville ou quartier de résidence" styleClass="text-input" />
+                                    </VBox>
+                                </GridPane>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Section 4 : Déclarant & Témoins -->
+                        <VBox spacing="8" styleClass="form-card">
+                            <Label text="4. Déclaration, Qualité du Déclarant et Mentions" styleClass="form-card-title" />
+                            <GridPane hgap="12" vgap="10">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="40" />
+                                    <ColumnConstraints percentWidth="30" />
+                                    <ColumnConstraints percentWidth="30" />
+                                </columnConstraints>
+
+                                <VBox spacing="4" GridPane.columnIndex="0">
+                                    <Label text="Nom complet du déclarant *" styleClass="field-label-required" />
+                                    <TextField fx:id="txtFormNomDeclarant" promptText="Nom et prénoms du déclarant" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="1">
+                                    <Label text="Qualité du déclarant *" styleClass="field-label-required" />
+                                    <ComboBox fx:id="cbFormQualiteDeclarant" maxWidth="Infinity" styleClass="combo-box-custom" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="2">
+                                    <Label text="Déclaration faite en présence de" styleClass="field-label" />
+                                    <TextField fx:id="txtFormTemoin" promptText="Témoin ou accoucheur" styleClass="text-input" />
+                                </VBox>
+                            </GridPane>
+
+                            <VBox spacing="4">
+                                <Label text="Mentions marginales / Observations particulières" styleClass="field-label" />
+                                <TextArea fx:id="txtFormObservations" prefRowCount="2" promptText="Mentions de légitimation, rectification, adoption ou observations légales..." styleClass="text-area-custom" />
+                            </VBox>
+                        </VBox>
+
+                        <!-- Section 5 : Enregistrement Communal & Document Délivré -->
+                        <VBox spacing="8" styleClass="form-card">
+                            <Label text="5. Validation Communale et Document Délivré" styleClass="form-card-title" />
+                            <GridPane hgap="12" vgap="10">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="40" />
+                                    <ColumnConstraints percentWidth="30" />
+                                    <ColumnConstraints percentWidth="30" />
+                                </columnConstraints>
+
+                                <VBox spacing="4" GridPane.columnIndex="0">
+                                    <Label text="Officier d'État Civil instrumentaire" styleClass="field-label" />
+                                    <TextField fx:id="txtFormOfficier" promptText="Nom et prénom de l'officier" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="1">
+                                    <Label text="Fonction officielle" styleClass="field-label" />
+                                    <TextField fx:id="txtFormFonction" promptText="Officier d'état civil délégué" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="2">
+                                    <Label text="Statut de validation" styleClass="field-label" />
+                                    <ComboBox fx:id="cbFormStatutValidation" maxWidth="Infinity" styleClass="combo-box-custom" />
+                                </VBox>
+                            </GridPane>
+
+                            <Separator />
+
+                            <GridPane hgap="12" vgap="8">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="30" />
+                                    <ColumnConstraints percentWidth="25" />
+                                    <ColumnConstraints percentWidth="25" />
+                                    <ColumnConstraints percentWidth="20" />
+                                </columnConstraints>
+
+                                <VBox spacing="4" GridPane.columnIndex="0">
+                                    <Label text="Type de document délivré" styleClass="field-label" />
+                                    <ComboBox fx:id="cbFormTypeDocument" maxWidth="Infinity" styleClass="combo-box-custom" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="1">
+                                    <Label text="Numéro de document" styleClass="field-label" />
+                                    <TextField fx:id="txtFormNumeroDocument" promptText="DOC-2025-001" styleClass="text-input" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="2">
+                                    <Label text="Date de délivrance" styleClass="field-label" />
+                                    <DatePicker fx:id="dpFormDateDelivrance" maxWidth="Infinity" styleClass="date-picker-custom" />
+                                </VBox>
+
+                                <VBox spacing="4" GridPane.columnIndex="3">
+                                    <Label text="Heure de délivrance" styleClass="field-label" />
+                                    <TextField fx:id="txtFormHeureDelivrance" promptText="11:00" styleClass="text-input" />
+                                </VBox>
+                            </GridPane>
+
+                            <HBox spacing="16" alignment="CENTER_LEFT">
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Personne ayant réceptionné le document" styleClass="field-label" />
+                                    <TextField fx:id="txtFormPersonneReception" promptText="Nom de la personne ayant retiré l'extrait ou certificat" styleClass="text-input" />
+                                </VBox>
+                                <CheckBox fx:id="chkFormConfirmationLivraison" text="Confirmation de remise en main propre signée" styleClass="field-label" />
+                            </HBox>
+                        </VBox>
+
+                        <!-- Boutons d'action du formulaire -->
+                        <HBox spacing="12" alignment="CENTER_RIGHT">
+                            <padding><Insets top="8" bottom="16" /></padding>
+                            <Button text="Réinitialiser" onAction="#reinitialiserFormulaireComplet" styleClass="btn-secondary" />
+                            <Button text="Aperçu de la fiche" onAction="#afficherVueFiche" styleClass="btn-secondary" />
+                            <Button text="💾 Enregistrer le dossier complet dans SQLite" onAction="#enregistrerDossierComplet" styleClass="btn-primary" style="-fx-font-size: 13px; -fx-padding: 10 20 10 20;" />
+                        </HBox>
+                    </VBox>
+                </ScrollPane>
+            </VBox>
+
+            <!-- ============================================================= -->
+            <!-- 3. VUE : LISTE DES NAISSANCES (REGISTRE OFFICIEL)             -->
+            <!-- ============================================================= -->
+            <VBox fx:id="viewListe" spacing="12" visible="false">
+                <padding><Insets top="16" right="20" bottom="16" left="20" /></padding>
+
+                <!-- En-tête de la liste -->
+                <HBox alignment="CENTER_LEFT" spacing="14">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label text="Registre Général des Actes de Naissance" styleClass="view-title" />
+                        <Label text="Consultation, filtrage en temps réel et gestion des dossiers d'état civil" styleClass="view-subtitle" />
+                    </VBox>
+                    <HBox alignment="CENTER_RIGHT" spacing="10">
+                        <Button text="＋ Nouvel acte" onAction="#afficherVueFormulaire" styleClass="btn-primary" />
+                        <Button text="📄 Voir la fiche complète" onAction="#consulterFicheSelectionnee" styleClass="btn-secondary" />
+                        <Button text="🗑 Supprimer" onAction="#supprimerDossierSelectionne" styleClass="btn-danger" />
+                    </HBox>
+                </HBox>
+
+                <!-- Barre de filtrage direct -->
+                <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-background-color: #ffffff; -fx-padding: 10 14 10 14; -fx-border-color: #e2e8f0; -fx-border-radius: 6; -fx-background-radius: 6;">
+                    <Label text="🔍 Filtre rapide :" styleClass="field-label" />
+                    <TextField fx:id="txtFiltreRapide" promptText="Filtrer par identifiant unique communal, N° registre, nom de l'enfant, parent..." HBox.hgrow="ALWAYS" styleClass="text-input" />
+                    <ComboBox fx:id="cbFiltreSexe" promptText="Tous sexes" prefWidth="120" styleClass="combo-box-custom" />
+                    <Button text="Effacer" onAction="#effacerFiltreRapide" styleClass="btn-secondary" />
+                    <Label fx:id="lblCompteurListe" text="0 dossier(s)" styleClass="field-label-gold" />
+                </HBox>
+
+                <!-- Tableau principal des actes -->
+                <TableView fx:id="tableListeNaissances" VBox.hgrow="ALWAYS" styleClass="custom-table">
+                    <columns>
+                        <TableColumn fx:id="colListeIdentifiant" text="Identifiant unique communal" prefWidth="170" />
+                        <TableColumn fx:id="colListeNumRegistre" text="N° Registre" prefWidth="120" />
+                        <TableColumn fx:id="colListeNom" text="Nom" prefWidth="120" />
+                        <TableColumn fx:id="colListePrenoms" text="Prénoms" prefWidth="160" />
+                        <TableColumn fx:id="colListeSexe" text="Sexe" prefWidth="55" />
+                        <TableColumn fx:id="colListeDateNaiss" text="Date Naiss." prefWidth="95" />
+                        <TableColumn fx:id="colListeLieu" text="Lieu Naissance" prefWidth="150" />
+                        <TableColumn fx:id="colListePere" text="Père" prefWidth="120" />
+                        <TableColumn fx:id="colListeMere" text="Mère" prefWidth="120" />
+                        <TableColumn fx:id="colListeStatut" text="Statut" prefWidth="80" />
+                    </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                    </columnResizePolicy>
+                </TableView>
+
+                <!-- Bandeau inférieur d'action -->
+                <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color: #ffffff; -fx-padding: 8 12 8 12; -fx-border-color: #e2e8f0; -fx-border-radius: 4;">
+                    <Label text="💡 Double-cliquez sur une ligne pour ouvrir instantanément la fiche complète de l'enfant." style="-fx-font-size: 11px; -fx-text-fill: #64748b;" HBox.hgrow="ALWAYS" />
+                    <Button text="Imprimer extrait officiel" onAction="#imprimerExtraitDepuisSelection" styleClass="btn-accent" style="-fx-font-size: 11px; -fx-padding: 4 10 4 10;" />
+                </HBox>
+            </VBox>
+
+            <!-- ============================================================= -->
+            <!-- 4. VUE : RECHERCHE MULTICRITÈRES                             -->
+            <!-- ============================================================= -->
+            <VBox fx:id="viewRecherche" spacing="14" visible="false">
+                <padding><Insets top="16" right="20" bottom="16" left="20" /></padding>
+
+                <!-- En-tête recherche -->
+                <VBox spacing="2">
+                    <Label text="Recherche Avancée Multicritères" styleClass="view-title" />
+                    <Label text="Interrogation multicritères de la base SQLite locale (combinaison libre des filtres)" styleClass="view-subtitle" />
+                </VBox>
+
+                <!-- Panneau des filtres -->
+                <VBox spacing="10" styleClass="form-card">
+                    <Label text="Critères de Sélection" styleClass="form-card-title" />
+                    
+                    <GridPane hgap="12" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="25" />
+                            <ColumnConstraints percentWidth="25" />
+                            <ColumnConstraints percentWidth="25" />
+                            <ColumnConstraints percentWidth="25" />
+                        </columnConstraints>
+
+                        <!-- Ligne 1 -->
+                        <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label text="Identifiant unique communal" styleClass="field-label" />
+                            <TextField fx:id="txtSearchIdentifiant" promptText="CIV-COMM-..." styleClass="text-input" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label text="Numéro de registre" styleClass="field-label" />
+                            <TextField fx:id="txtSearchNumRegistre" promptText="REG-..." styleClass="text-input" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                            <Label text="Nom de l'enfant" styleClass="field-label" />
+                            <TextField fx:id="txtSearchNomEnfant" promptText="Nom de famille" styleClass="text-input" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                            <Label text="Prénoms de l'enfant" styleClass="field-label" />
+                            <TextField fx:id="txtSearchPrenomsEnfant" promptText="Prénoms" styleClass="text-input" />
+                        </VBox>
+
+                        <!-- Ligne 2 -->
+                        <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <Label text="Nom du père" styleClass="field-label" />
+                            <TextField fx:id="txtSearchNomPere" promptText="Nom père" styleClass="text-input" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <Label text="Nom de la mère" styleClass="field-label" />
+                            <TextField fx:id="txtSearchNomMere" promptText="Nom mère" styleClass="text-input" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                            <Label text="Année de naissance" styleClass="field-label" />
+                            <TextField fx:id="txtSearchAnneeNaissance" promptText="ex: 2025" styleClass="text-input" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                            <Label text="Année de déclaration" styleClass="field-label" />
+                            <TextField fx:id="txtSearchAnneeDeclaration" promptText="ex: 2025" styleClass="text-input" />
+                        </VBox>
+                    </GridPane>
+
+                    <!-- Boutons de recherche -->
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <padding><Insets top="4" /></padding>
+                        <Button text="Réinitialiser les critères" onAction="#reinitialiserCriteresRecherche" styleClass="btn-secondary" />
+                        <Button text="🔍 Lancer la recherche" onAction="#executerRechercheMulticriteres" styleClass="btn-primary" />
+                    </HBox>
+                </VBox>
+
+                <!-- Résultats -->
+                <VBox spacing="8" VBox.hgrow="ALWAYS" styleClass="form-card">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="Résultats de la Recherche" styleClass="form-card-title" HBox.hgrow="ALWAYS" />
+                        <Label fx:id="lblResultatsRechercheCount" text="Aucune recherche lancée" styleClass="field-label-gold" />
+                        <Button text="Ouvrir la fiche sélectionnée →" onAction="#consulterFicheDepuisRecherche" styleClass="btn-primary" style="-fx-font-size: 11px; -fx-padding: 4 10 4 10;" />
+                    </HBox>
+
+                    <TableView fx:id="tableResultatsRecherche" VBox.hgrow="ALWAYS" styleClass="custom-table">
+                        <columns>
+                            <TableColumn fx:id="colSearchIdentifiant" text="Identifiant unique communal" prefWidth="180" />
+                            <TableColumn fx:id="colSearchNumRegistre" text="N° Registre" prefWidth="120" />
+                            <TableColumn fx:id="colSearchNom" text="Nom" prefWidth="120" />
+                            <TableColumn fx:id="colSearchPrenoms" text="Prénoms" prefWidth="160" />
+                            <TableColumn fx:id="colSearchSexe" text="Sexe" prefWidth="55" />
+                            <TableColumn fx:id="colSearchDateNaiss" text="Date Naissance" prefWidth="100" />
+                            <TableColumn fx:id="colSearchLieu" text="Lieu de Naissance" prefWidth="150" />
+                            <TableColumn fx:id="colSearchPere" text="Nom Père" prefWidth="120" />
+                            <TableColumn fx:id="colSearchMere" text="Nom Mère" prefWidth="120" />
+                        </columns>
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </VBox>
+
+            <!-- ============================================================= -->
+            <!-- 5. VUE : FICHE COMPLÈTE DE L'ENFANT (DOSSIER OFFICIEL)        -->
+            <!-- ============================================================= -->
+            <VBox fx:id="viewFiche" spacing="0" visible="false">
+                <!-- En-tête de fiche -->
+                <HBox alignment="CENTER_LEFT" spacing="14" styleClass="view-header">
+                    <Button text="← Retour à la liste" onAction="#afficherVueListe" styleClass="btn-secondary" />
+                    <VBox spacing="1" HBox.hgrow="ALWAYS">
+                        <Label text="Fiche Complète Individuelle de l'Enfant" styleClass="view-title" />
+                        <Label text="Dossier d'état civil officiel certifié conforme au registre communal" styleClass="view-subtitle" />
+                    </VBox>
+                    <HBox alignment="CENTER_RIGHT" spacing="10">
+                        <Button text="✏️ Modifier ce dossier" onAction="#chargerDossierEnModification" styleClass="btn-secondary" />
+                        <Button text="🖨️ Imprimer l'extrait officiel" onAction="#imprimerExtraitActuel" styleClass="btn-accent" />
+                    </HBox>
+                </HBox>
+
+                <!-- Zone déroulante de la fiche officielle -->
+                <ScrollPane fitToWidth="true" VBox.hgrow="ALWAYS" styleClass="form-scroll">
+                    <VBox spacing="14" alignment="TOP_CENTER">
+                        <padding><Insets top="16" right="40" bottom="30" left="40" /></padding>
+
+                        <!-- Conteneur officiel façon document d'état civil -->
+                        <VBox spacing="16" maxWidth="960" styleClass="fiche-container">
+                            
+                            <!-- En-tête de document officiel -->
+                            <VBox alignment="CENTER" spacing="4">
+                                <Label text="RÉPUBLIQUE • MINISTÈRE DE L'INTÉRIEUR" styleClass="fiche-header-republique" />
+                                <Label text="COMMUNE D'ENREGISTREMENT — REGISTRE DE L'ÉTAT CIVIL" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #1e3a8a;" />
+                                <Label text="ACTE DE NAISSANCE ET DOSSIER COMMUNAL" styleClass="fiche-titre-principal" />
+                                <Label text="Document officiel de conservation numérique hors-ligne" style="-fx-font-size: 10px; -fx-text-fill: #64748b;" />
+                            </VBox>
+
+                            <Separator />
+
+                            <!-- Boîte d'identification officielle -->
+                            <GridPane hgap="16" vgap="8" styleClass="fiche-numero-box">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="50" />
+                                    <ColumnConstraints percentWidth="50" />
+                                </columnConstraints>
+
+                                <VBox spacing="2" GridPane.columnIndex="0">
+                                    <Label text="Identifiant unique communal :" styleClass="fiche-field-name" />
+                                    <Label fx:id="lblFicheIdentifiantUnique" text="CIV-COMM-2025-00001" style="-fx-font-family: Consolas; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1e3a8a;" />
+                                </VBox>
+
+                                <VBox spacing="2" GridPane.columnIndex="1">
+                                    <Label text="Numéro d'inscription au Registre :" styleClass="fiche-field-name" />
+                                    <Label fx:id="lblFicheNumeroRegistre" text="REG-2025-0001 (Année 2025)" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" />
+                                </VBox>
+                            </GridPane>
+
+                            <!-- Bloc 1 : Identité de l'Enfant -->
+                            <VBox spacing="8" styleClass="fiche-section-box">
+                                <Label text="I. IDENTITÉ DU NOUVEAU-NÉ" styleClass="fiche-section-header" />
+                                <GridPane hgap="16" vgap="8">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="33" />
+                                        <ColumnConstraints percentWidth="33" />
+                                        <ColumnConstraints percentWidth="34" />
+                                    </columnConstraints>
+
+                                    <VBox spacing="2" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                        <Label text="Nom de famille :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheNom" text="KOUASSI" styleClass="fiche-field-val" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                        <Label text="Prénoms :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFichePrenoms" text="Emmanuel Koffi" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                                        <Label text="Sexe :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheSexe" text="Masculin (M)" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                        <Label text="Date et heure de naissance :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheDateHeureNaiss" text="15/01/2025 à 08:45" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                        <Label text="Lieu de naissance :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheLieuNaiss" text="Maternité Municipale" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                        <Label text="Statut légal :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheStatutEnfant" text="Enfant" styleClass="fiche-field-val" />
+                                    </VBox>
+                                </GridPane>
+                            </VBox>
+
+                            <!-- Bloc 2 : Filiation des Parents -->
+                            <VBox spacing="8" styleClass="fiche-section-box">
+                                <Label text="II. FILIATION DES PARENTS" styleClass="fiche-section-header" />
+                                
+                                <GridPane hgap="16" vgap="10">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50" />
+                                        <ColumnConstraints percentWidth="50" />
+                                    </columnConstraints>
+
+                                    <!-- Père -->
+                                    <VBox spacing="4" GridPane.columnIndex="0" style="-fx-background-color: #f8fafc; -fx-padding: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 4;">
+                                        <Label text="Père :" style="-fx-font-weight: bold; -fx-text-fill: #1e3a8a; -fx-font-size: 11px;" />
+                                        <Label fx:id="lblFicheNomPrenomPere" text="KOUASSI Jean-Baptiste" styleClass="fiche-field-val" />
+                                        <Label fx:id="lblFicheNaissAgePere" text="Né le 12/04/1988 (37 ans)" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheProfPere" text="Profession : Enseignant" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheDomPere" text="Domicile : Abidjan - Cocody" styleClass="fiche-field-name" />
+                                    </VBox>
+
+                                    <!-- Mère -->
+                                    <VBox spacing="4" GridPane.columnIndex="1" style="-fx-background-color: #f8fafc; -fx-padding: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 4;">
+                                        <Label text="Mère :" style="-fx-font-weight: bold; -fx-text-fill: #1e3a8a; -fx-font-size: 11px;" />
+                                        <Label fx:id="lblFicheNomPrenomMere" text="KOUAMÉ Marie-Louise" styleClass="fiche-field-val" />
+                                        <Label fx:id="lblFicheNaissAgeMere" text="Née le 05/09/1992 (32 ans)" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheProfMere" text="Profession : Comptable" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheDomMere" text="Domicile : Abidjan - Cocody" styleClass="fiche-field-name" />
+                                    </VBox>
+                                </GridPane>
+                            </VBox>
+
+                            <!-- Bloc 3 : Déclaration & Enregistrement Communal -->
+                            <VBox spacing="8" styleClass="fiche-section-box">
+                                <Label text="III. DÉCLARATION ET ENREGISTREMENT COMMUNAL" styleClass="fiche-section-header" />
+                                <GridPane hgap="16" vgap="8">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="33" />
+                                        <ColumnConstraints percentWidth="33" />
+                                        <ColumnConstraints percentWidth="34" />
+                                    </columnConstraints>
+
+                                    <VBox spacing="2" GridPane.columnIndex="0">
+                                        <Label text="Déclarant :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheDeclarant" text="KOUASSI Jean-Baptiste (Père)" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="1">
+                                        <Label text="Date et heure de déclaration :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheDateDeclaration" text="16/01/2025 à 09:30" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="2">
+                                        <Label text="Officier d'État Civil :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheOfficier" text="M. l'Officier de l'État Civil" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                        <Label text="Tome / Folio :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheTomeFolio" text="Tome: T-01 | Folio: F-01" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                        <Label text="Statut de validation :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheStatutValidation" text="VALIDE" styleClass="fiche-field-val" style="-fx-text-fill: #15803d; -fx-font-weight: bold;" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                        <Label text="Mentions marginales :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheObservations" text="Néant" styleClass="fiche-field-val" />
+                                    </VBox>
+                                </GridPane>
+                            </VBox>
+
+                            <!-- Bloc 4 : Document Délivré -->
+                            <VBox spacing="8" styleClass="fiche-section-box">
+                                <Label text="IV. DOCUMENT DÉLIVRÉ ET SUIVI DE REMISE" styleClass="fiche-section-header" />
+                                <GridPane hgap="16" vgap="8">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="33" />
+                                        <ColumnConstraints percentWidth="33" />
+                                        <ColumnConstraints percentWidth="34" />
+                                    </columnConstraints>
+
+                                    <VBox spacing="2" GridPane.columnIndex="0">
+                                        <Label text="Type de document délivré :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheTypeDoc" text="Extrait d'acte de naissance" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="1">
+                                        <Label text="Numéro de document :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheNumDoc" text="DOC-2025-001" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="2">
+                                        <Label text="Délivré le :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheDateDoc" text="16/01/2025 à 10:00" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                        <Label text="Réceptionné par :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheReceptionnaire" text="KOUASSI Jean-Baptiste" styleClass="fiche-field-val" />
+                                    </VBox>
+
+                                    <VBox spacing="2" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                        <Label text="Confirmation de remise :" styleClass="fiche-field-name" />
+                                        <Label fx:id="lblFicheRemiseConfirmation" text="✓ Confirmée en main propre" styleClass="fiche-field-val" style="-fx-text-fill: #15803d;" />
+                                    </VBox>
+                                </GridPane>
+                            </VBox>
+
+                            <!-- Pied de la fiche officielle -->
+                            <HBox alignment="CENTER_BETWEEN" spacing="20" style="-fx-padding: 10 0 0 0;">
+                                <VBox spacing="2">
+                                    <Label text="Sceau de la Mairie / Centre d'État Civil :" styleClass="fiche-field-name" />
+                                    <Label text="[SCEAU OFFICIEL COMMUNAL ENREGISTRÉ]" style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #94a3b8;" />
+                                </VBox>
+                                <VBox spacing="2" alignment="CENTER_RIGHT">
+                                    <Label text="Signature de l'Officier d'État Civil :" styleClass="fiche-field-name" />
+                                    <Label text="Certifié conforme aux registres de la commune" style="-fx-font-size: 10px; -fx-text-fill: #64748b;" />
+                                </VBox>
+                            </HBox>
+
+                        </VBox>
+                    </VBox>
+                </ScrollPane>
+            </VBox>
+
+            <!-- ============================================================= -->
+            <!-- 6. VUE : GESTION DES UTILISATEURS (ADMINISTRATEUR)             -->
+            <!-- ============================================================= -->
+            <VBox fx:id="viewUtilisateurs" spacing="16" visible="false" managed="false">
+                <padding><Insets top="16" right="20" bottom="16" left="20" /></padding>
+
+                <VBox spacing="2">
+                    <Label text="Gestion des Utilisateurs et Droits d'Accès" styleClass="view-title" />
+                    <Label text="Administration des comptes habilités au registre communal (Réservé au rôle ADMINISTRATEUR)" styleClass="view-subtitle" />
+                </VBox>
+
+                <!-- Formulaire création nouvel utilisateur -->
+                <VBox spacing="12" styleClass="form-card">
+                    <Label text="Créer un nouveau compte d'accès" styleClass="form-card-title" />
+                    <GridPane hgap="12" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="25" />
+                            <ColumnConstraints percentWidth="30" />
+                            <ColumnConstraints percentWidth="25" />
+                            <ColumnConstraints percentWidth="20" />
+                        </columnConstraints>
+
+                        <VBox spacing="4" GridPane.columnIndex="0">
+                            <Label text="Nom d'utilisateur (login unique) :" styleClass="form-field-label" />
+                            <TextField fx:id="txtNewUserLogin" promptText="Ex : agent.durand" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="1">
+                            <Label text="Nom complet &amp; Prénoms :" styleClass="form-field-label" />
+                            <TextField fx:id="txtNewUserNomComplet" promptText="Ex : DURAND Marc" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="2">
+                            <Label text="Rôle attribué :" styleClass="form-field-label" />
+                            <ComboBox fx:id="cbNewUserRole" maxWidth="Infinity" />
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="3">
+                            <Label text="Mot de passe initial :" styleClass="form-field-label" />
+                            <PasswordField fx:id="txtNewUserMdp" promptText="••••••••" />
+                        </VBox>
+                    </GridPane>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="＋ Enregistrer le compte" onAction="#creerNouvelUtilisateur" styleClass="btn-primary" />
+                    </HBox>
+                </VBox>
+
+                <!-- Tableau des utilisateurs -->
+                <VBox spacing="8" VBox.hgrow="ALWAYS" styleClass="form-card">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="Liste des comptes enregistrés dans SQLite" styleClass="form-card-title" HBox.hgrow="ALWAYS" />
+                        <Button text="Activer / Désactiver le compte" onAction="#toggleActifUtilisateur" styleClass="btn-secondary" />
+                        <Button text="⟳ Actualiser la liste" onAction="#afficherVueUtilisateurs" styleClass="btn-secondary" />
+                    </HBox>
+
+                    <TableView fx:id="tableUtilisateurs" VBox.hgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colUserId" text="ID" prefWidth="50" />
+                            <TableColumn fx:id="colUserNom" text="Identifiant" prefWidth="120" />
+                            <TableColumn fx:id="colUserNomComplet" text="Nom complet" prefWidth="200" />
+                            <TableColumn fx:id="colUserRole" text="Rôle" prefWidth="170" />
+                            <TableColumn fx:id="colUserActif" text="Statut" prefWidth="90" />
+                            <TableColumn fx:id="colUserDateCreation" text="Date création" prefWidth="150" />
+                            <TableColumn fx:id="colUserDerniereConnexion" text="Dernière connexion" prefWidth="160" />
+                        </columns>
+                    </TableView>
+                </VBox>
+            </VBox>
+
+        </StackPane>
+    </center>
+
+    <!-- ===================================================================== -->
+    <!-- BARRE D'ÉTAT INFÉRIEURE                                               -->
+    <!-- ===================================================================== -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="status-bar">
+            <Label fx:id="lblStatutDB" text="● Base SQLite connectée" styleClass="status-db" />
+            <Separator orientation="VERTICAL" />
+            <Label fx:id="lblTotalActes" text="Total : 0 dossier(s)" styleClass="status-text" />
+            <Separator orientation="VERTICAL" />
+            <Label fx:id="lblVueActuelle" text="Vue : Tableau de bord" styleClass="status-text" />
+            <Separator orientation="VERTICAL" />
+            <Label fx:id="lblMessageInfo" text="Système prêt." HBox.hgrow="ALWAYS" styleClass="status-message" />
+            <Label text="Mode hors-ligne certifié" styleClass="status-badge" />
+        </HBox>
+    </bottom>
+</BorderPane>

@@ -1,0 +1,6 @@
+{
+  "name": "Gestion des Naissances",
+  "description": "Application desktop hors ligne pour l'enregistrement et l'archivage numérique des déclarations de naissance en Java, JavaFX, JDBC et SQLite.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
